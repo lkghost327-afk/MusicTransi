@@ -2,6 +2,12 @@
 
 This is a **prerelease**. Android and iPhone have different readiness levels.
 
+## Preview
+
+| Ambient player | Lyric sharing card |
+|---|---|
+| ![Artwork-led glass player](https://raw.githubusercontent.com/lkghost327-afk/MusicTransi/main/docs/screenshots/player-glass.png) | ![Lyric card with song identity](https://raw.githubusercontent.com/lkghost327-afk/MusicTransi/main/docs/screenshots/lyric-card.png) |
+
 ## Android
 
 - Left/right artwork transitions, cover fades and gradual background colours.
