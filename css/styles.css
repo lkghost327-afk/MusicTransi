@@ -1,0 +1,2019 @@
+/**
+ * MusicTransi — Professional DJ Automix Web App
+ * Stylesheet: Modern Dark Theme with Deck A (Amber) & Deck B (Blue)
+ */
+
+/* ==========================================================================
+   1. CSS Custom Properties (Design Tokens & Color Palette)
+   ========================================================================== */
+:root {
+  /* Core Color Palette */
+  --bg-primary: #0a0a0f;          /* Very dark blue-black base */
+  --surface: #141420;             /* Dark panel surface */
+  --surface-raised: #1a1a2e;      /* Elevated cards and modules */
+  --surface-hover: #22223a;       /* Interactive hover state */
+  --surface-active: #2a2a46;      /* Active pressed surface */
+
+  /* Deck & Accents */
+  --accent-primary: #e8a838;      /* Amber / Gold (Deck A - Outgoing) */
+  --accent-primary-hover: #f5b74c;
+  --accent-primary-dim: rgba(232, 168, 56, 0.18);
+  --accent-secondary: #4a9eff;    /* Electric Blue (Deck B - Incoming) */
+  --accent-secondary-hover: #67adff;
+  --accent-secondary-dim: rgba(74, 158, 255, 0.18);
+
+  /* Typography & Neutrals */
+  --text-primary: #e8e8ef;        /* High-contrast crisp text */
+  --text-secondary: #8888a0;      /* Muted metadata / labels */
+  --text-muted: #565670;          /* Dim secondary details */
+  --border: #2a2a3e;              /* Subtle container borders */
+  --border-focus: #3e3e5c;        /* Highlighted border */
+
+  /* Functional Accents */
+  --success: #4ade80;             /* Energetic green for BPM / active indicators */
+  --success-dim: rgba(74, 222, 128, 0.16);
+  --danger: #ef4444;              /* Warning / Delete buttons */
+  --danger-dim: rgba(239, 68, 68, 0.16);
+
+  /* Gradients */
+  --transition-gradient: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  --deck-a-card-gradient: linear-gradient(180deg, rgba(232, 168, 56, 0.08) 0%, rgba(26, 26, 46, 0.95) 100%);
+  --deck-b-card-gradient: linear-gradient(180deg, rgba(74, 158, 255, 0.08) 0%, rgba(26, 26, 46, 0.95) 100%);
+
+  /* Shadows & Glows */
+  --glow-amber: 0 0 20px rgba(232, 168, 56, 0.35);
+  --glow-blue: 0 0 20px rgba(74, 158, 255, 0.35);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-floating: 0 12px 36px rgba(0, 0, 0, 0.65);
+
+  /* Typography Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+  /* Layout & Sizing */
+  --container-max: 1200px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Animation Timings */
+  --transition-speed: 0.2s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   2. Reset & Global Styles
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Text Selection */
+::selection {
+  background: var(--accent-primary);
+  color: #0a0a0f;
+}
+
+/* Dark Native-Style Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-focus);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg-primary);
+}
+
+/* Accessible Visually Hidden Helper */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Ambient Studio Lights */
+.ambient-glow {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(120px);
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.ambient-glow-left {
+  top: -150px;
+  left: -150px;
+  width: 500px;
+  height: 500px;
+  background: var(--accent-primary);
+}
+
+.ambient-glow-right {
+  bottom: 0;
+  right: -150px;
+  width: 550px;
+  height: 550px;
+  background: var(--accent-secondary);
+}
+
+/* Main Container */
+.app-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ==========================================================================
+   3. App Header
+   ========================================================================== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(42, 42, 62, 0.4);
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(232, 168, 56, 0.2);
+}
+
+.spin-slow {
+  animation: discSpin 14s linear infinite;
+}
+
+@keyframes discSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.logo-title span {
+  background: var(--transition-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-subtitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+
+/* Engine & Deck Indicator Badges */
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(20, 20, 32, 0.8);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.engine-badge.active {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.08);
+  color: var(--success);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+  animation: pulseDot 2s ease infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.deck-indicators {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deck-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.deck-pill-a {
+  color: var(--accent-primary);
+  border-color: rgba(232, 168, 56, 0.3);
+}
+
+.deck-pill-a .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px var(--accent-primary);
+}
+
+.deck-pill-b {
+  color: var(--accent-secondary);
+  border-color: rgba(74, 158, 255, 0.3);
+}
+
+.deck-pill-b .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-secondary);
+  box-shadow: 0 0 6px var(--accent-secondary);
+}
+
+/* ==========================================================================
+   4. Drop Zone (File Picker)
+   ========================================================================== */
+.drop-zone-section {
+  width: 100%;
+}
+
+.drop-zone {
+  position: relative;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  outline: none;
+  overflow: hidden;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-visible {
+  border-color: var(--accent-primary);
+  background: rgba(20, 20, 32, 0.95);
+  box-shadow: 0 0 25px rgba(232, 168, 56, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Drag-over Animation and Highlight */
+.drop-zone.drag-over {
+  border-color: var(--accent-primary);
+  background: rgba(232, 168, 56, 0.08);
+  box-shadow: 0 0 35px rgba(232, 168, 56, 0.35), inset 0 0 20px rgba(232, 168, 56, 0.1);
+  transform: scale(1.01);
+  animation: dropGlowPulse 1.4s infinite alternate ease-in-out;
+}
+
+@keyframes dropGlowPulse {
+  0% {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 20px rgba(232, 168, 56, 0.25);
+  }
+  100% {
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 35px rgba(74, 158, 255, 0.35);
+  }
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.drop-zone-icon-ring {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--accent-primary);
+  transition: all var(--transition-speed);
+}
+
+.drop-zone:hover .drop-zone-icon-ring,
+.drop-zone.drag-over .drop-zone-icon-ring {
+  transform: scale(1.1);
+  background: var(--accent-primary);
+  color: #0a0a0f;
+  box-shadow: var(--glow-amber);
+}
+
+.drop-zone-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.drop-zone-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.browse-link {
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.drop-zone-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.format-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-speed);
+}
+
+.drop-zone:hover .format-tag {
+  border-color: rgba(232, 168, 56, 0.35);
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   5. DJ Decks Overview (Deck A & Deck B Cards)
+   ========================================================================== */
+.decks-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.decks-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .decks-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.deck-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.deck-card:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+}
+
+/* Deck A Specifics (Amber Accent) */
+.deck-a-card {
+  background: var(--deck-a-card-gradient);
+  border-top: 2px solid var(--accent-primary);
+}
+
+.deck-a-card:hover {
+  box-shadow: 0 8px 24px rgba(232, 168, 56, 0.12);
+}
+
+.deck-tag-a {
+  color: var(--accent-primary);
+  background: rgba(232, 168, 56, 0.12);
+  border: 1px solid rgba(232, 168, 56, 0.25);
+}
+
+.track-artwork-a {
+  background: linear-gradient(135deg, rgba(232, 168, 56, 0.3) 0%, rgba(20, 20, 32, 0.8) 100%);
+  color: var(--accent-primary);
+  border: 1px solid rgba(232, 168, 56, 0.3);
+}
+
+/* Deck B Specifics (Blue Accent) */
+.deck-b-card {
+  background: var(--deck-b-card-gradient);
+  border-top: 2px solid var(--accent-secondary);
+}
+
+.deck-b-card:hover {
+  box-shadow: 0 8px 24px rgba(74, 158, 255, 0.12);
+}
+
+.deck-tag-b {
+  color: var(--accent-secondary);
+  background: rgba(74, 158, 255, 0.12);
+  border: 1px solid rgba(74, 158, 255, 0.25);
+}
+
+.track-artwork-b {
+  background: linear-gradient(135deg, rgba(74, 158, 255, 0.3) 0%, rgba(20, 20, 32, 0.8) 100%);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+}
+
+/* Deck Card Elements */
+.deck-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deck-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Animated Equalizer Wave for Deck A */
+.live-wave-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.live-wave-indicator span {
+  width: 3px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  animation: liveWave 1.1s ease-in-out infinite alternate;
+}
+
+.live-wave-indicator span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.live-wave-indicator span:nth-child(2) { height: 95%; animation-delay: 0.3s; }
+.live-wave-indicator span:nth-child(3) { height: 60%; animation-delay: 0.15s; }
+.live-wave-indicator span:nth-child(4) { height: 80%; animation-delay: 0.4s; }
+
+@keyframes liveWave {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+
+.deck-sync-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+  background: rgba(74, 158, 255, 0.12);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.deck-card-body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.track-artwork {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.track-info-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.track-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.track-artist {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.3rem;
+}
+
+/* BPM Badges: Green Rounded Pills */
+.bpm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--success);
+  color: #052e16;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.bpm-badge i {
+  font-size: 0.65rem;
+}
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+.key-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+.deck-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(42, 42, 62, 0.6);
+  font-size: 0.8rem;
+}
+
+.time-counter {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.time-current {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.time-divider {
+  color: var(--text-muted);
+  margin: 0 0.2rem;
+}
+
+.time-total {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.deck-gain-status,
+.pitch-diff,
+.transition-cue-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.vu-meter {
+  width: 60px;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.vu-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success) 0%, var(--accent-primary) 70%, var(--danger) 100%);
+  border-radius: 3px;
+}
+
+.cue-time,
+.pitch-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-secondary);
+}
+
+/* ==========================================================================
+   6. Waveform Stage & Transition Overlap Zone
+   ========================================================================== */
+.waveform-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.waveform-stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.deck-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+}
+
+.legend-color-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot-amber {
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
+.dot-blue {
+  background: var(--accent-secondary);
+  box-shadow: 0 0 8px var(--accent-secondary);
+}
+
+.waveform-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Waveform Container Special Styles */
+.waveform-container {
+  position: relative;
+  background: #08080d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: inset 0 3px 12px rgba(0, 0, 0, 0.75), 0 4px 16px rgba(0, 0, 0, 0.4);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+}
+
+/* Background Beat & Bar Grid Lines */
+.waveform-grid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.grid-line {
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(42, 42, 62, 0.15) 0%, rgba(42, 42, 62, 0.45) 50%, rgba(42, 42, 62, 0.15) 100%);
+}
+
+/* Waveform Canvas Element */
+#waveform-canvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+/* Progress Bar & Playhead */
+.progress-bar-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, rgba(232, 168, 56, 0.05) 0%, rgba(232, 168, 56, 0.18) 100%);
+  border-right: 2px solid var(--accent-primary);
+  transition: width 0.1s linear;
+  box-shadow: 2px 0 12px rgba(232, 168, 56, 0.4);
+}
+
+.progress-playhead {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-primary);
+}
+
+/* Transition Zone: Overlapping Crossfade Region */
+.transition-zone {
+  position: absolute;
+  right: 12%;
+  width: 28%;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(232, 168, 56, 0.1) 0%, rgba(74, 158, 255, 0.12) 100%);
+  border-left: 2px dashed rgba(232, 168, 56, 0.6);
+  border-right: 2px dashed rgba(74, 158, 255, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem 0.5rem;
+}
+
+.transition-zone-header {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(20, 20, 32, 0.85);
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  align-self: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Crossfade Curves SVG Visualization */
+.crossfade-curves {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.crossfade-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.curve-deck-a {
+  stroke: var(--accent-primary);
+  stroke-width: 2.5;
+  fill: none;
+  filter: drop-shadow(0 0 4px rgba(232, 168, 56, 0.6));
+}
+
+.curve-deck-b {
+  stroke: var(--accent-secondary);
+  stroke-width: 2.5;
+  fill: none;
+  filter: drop-shadow(0 0 4px rgba(74, 158, 255, 0.6));
+}
+
+.transition-zone-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.fade-tag {
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(10, 10, 15, 0.85);
+}
+
+.fade-tag.fade-out {
+  color: var(--accent-primary);
+}
+
+.fade-tag.fade-in {
+  color: var(--accent-secondary);
+}
+
+/* Time Stamp Markers Below Canvas */
+.waveform-time-markers {
+  position: absolute;
+  bottom: 0.35rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ==========================================================================
+   7. Transport Controls Bar
+   ========================================================================== */
+.transport-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.15rem 1.5rem;
+  box-shadow: var(--shadow-floating);
+  position: relative;
+  z-index: 10;
+}
+
+.transport-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .transport-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.transport-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Left Group: Automix Toggle */
+.transport-left {
+  width: 100%;
+  justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .transport-left {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+.automix-control {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Custom CSS Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  display: inline-block;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-smooth);
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-secondary);
+  border-radius: 50%;
+  transition: all var(--transition-smooth);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--transition-gradient);
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(232, 168, 56, 0.35);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+  background-color: #0a0a0f;
+}
+
+.toggle-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggle-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.toggle-title i {
+  color: var(--accent-primary);
+}
+
+.toggle-sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.sync-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.sync-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+/* Center Group: Primary DJ Buttons & Crossfade Dropdown */
+.transport-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .transport-center {
+    width: auto;
+  }
+}
+
+.main-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+/* Touch-Friendly Transport Buttons (Min 48px Touch Target) */
+.transport-btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-speed);
+  position: relative;
+}
+
+.transport-btn:active {
+  transform: scale(0.95);
+}
+
+.secondary-btn {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.secondary-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-focus);
+  color: var(--accent-primary);
+  box-shadow: 0 0 14px rgba(232, 168, 56, 0.2);
+}
+
+/* Large Center Play/Pause Button */
+.play-btn {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  background: var(--accent-primary);
+  color: #0a0a0f;
+  font-size: 1.5rem;
+  box-shadow: 0 6px 20px rgba(232, 168, 56, 0.45);
+}
+
+.play-btn:hover {
+  background: var(--accent-primary-hover);
+  transform: scale(1.05);
+  box-shadow: 0 8px 26px rgba(232, 168, 56, 0.6);
+}
+
+/* Pulse Animation for Play Button When Playing */
+.play-btn.playing {
+  animation: playPulse 2s infinite ease-out;
+  background: var(--transition-gradient);
+  color: #0a0a0f;
+}
+
+@keyframes playPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 168, 56, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(232, 168, 56, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 168, 56, 0);
+  }
+}
+
+/* Custom Crossfade Duration Selector */
+.crossfade-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.selector-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.custom-select-container {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 2rem 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-speed);
+}
+
+.custom-select:hover,
+.custom-select:focus-visible {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(232, 168, 56, 0.2);
+}
+
+.custom-select option {
+  background: #141420;
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+
+.select-caret {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+/* Right Group: Master Volume Control */
+.transport-right {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+@media (min-width: 768px) {
+  .transport-right {
+    width: auto;
+  }
+}
+
+.volume-control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.volume-mute-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-speed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.volume-mute-btn:hover {
+  color: var(--accent-primary);
+}
+
+.volume-slider-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 1;
+  max-width: 180px;
+}
+
+/* Custom Styled Range Input (Volume Slider) */
+.custom-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+  transition: background var(--transition-speed);
+}
+
+/* WebKit Track & Thumb */
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(232, 168, 56, 0.6);
+  cursor: pointer;
+  transition: transform var(--transition-speed), background var(--transition-speed);
+  border: 2px solid #0a0a0f;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: var(--accent-primary-hover);
+  box-shadow: var(--glow-amber);
+}
+
+/* Firefox Track & Thumb */
+.custom-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(232, 168, 56, 0.6);
+  cursor: pointer;
+  border: 2px solid #0a0a0f;
+  transition: transform var(--transition-speed);
+}
+
+.custom-range::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.custom-range::-moz-range-track {
+  height: 6px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+}
+
+.volume-display {
+  min-width: 38px;
+  text-align: right;
+}
+
+.volume-percent {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   8. Queue Section
+   ========================================================================== */
+.queue-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.queue-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.queue-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.queue-title i {
+  color: var(--accent-primary);
+}
+
+.queue-counter-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.btn-clear-queue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.btn-clear-queue:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* Queue List Container */
+.queue-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Queue Item Cards */
+.track-item {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all var(--transition-speed);
+  position: relative;
+  overflow: hidden;
+  animation: queueFadeIn 0.3s ease-out;
+}
+
+@keyframes queueFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.track-item:hover {
+  transform: translateX(4px);
+  border-color: var(--border-focus);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  background: var(--surface-hover);
+}
+
+/* Glow Effect on Active / Next Up Track in Queue */
+.track-item.active-queued {
+  border-color: rgba(74, 158, 255, 0.5);
+  background: linear-gradient(90deg, rgba(74, 158, 255, 0.08) 0%, var(--surface-raised) 100%);
+  box-shadow: 0 0 18px rgba(74, 158, 255, 0.2);
+}
+
+.track-item.active-queued::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent-secondary);
+}
+
+.track-drag-handle {
+  color: var(--text-muted);
+  cursor: grab;
+  font-size: 0.95rem;
+  padding: 0.2rem;
+  transition: color var(--transition-speed);
+  display: flex;
+  align-items: center;
+}
+
+.track-drag-handle:hover {
+  color: var(--text-primary);
+}
+
+.track-drag-handle:active {
+  cursor: grabbing;
+}
+
+.track-order-number {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 22px;
+}
+
+.track-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-item-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-item-meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-item-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.remove-btn:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* Empty State Message */
+.queue-empty-state {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: var(--text-muted);
+}
+
+.empty-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 420px;
+}
+
+/* ==========================================================================
+   9. App Footer
+   ========================================================================== */
+.app-footer {
+  margin-top: 1rem;
+  padding: 1.5rem 0 0.5rem;
+  border-top: 1px solid rgba(42, 42, 62, 0.4);
+}
+
+.footer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .footer-container {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+.footer-brand-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.brand-name {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.brand-divider {
+  color: var(--text-muted);
+}
+
+.brand-tagline {
+  color: var(--text-secondary);
+}
+
+.footer-center-credits {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.highlight-text {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.footer-keyboard-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.hint-pill {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hint-pill kbd {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   10. Responsive Breakpoints & Fine Tuning
+   ========================================================================== */
+/* Mobile Devices (< 640px) */
+@media (max-width: 639px) {
+  .app-container {
+    padding: 1rem 0.75rem 2rem;
+    gap: 1.25rem;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-status {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .deck-card {
+    padding: 1rem;
+  }
+
+  .track-artwork {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  .track-title {
+    font-size: 0.95rem;
+  }
+
+  .waveform-container {
+    min-height: 160px;
+  }
+
+  #waveform-canvas {
+    height: 160px;
+  }
+
+  .transition-zone {
+    width: 38%;
+    right: 5%;
+  }
+
+  .zone-text {
+    display: none;
+  }
+
+  .transport-bar {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .track-item {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .track-item-badges {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .volume-slider-box {
+    max-width: 120px;
+  }
+}
+
+/* Tablet Devices (640px - 1024px) */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .app-container {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .transition-zone {
+    width: 30%;
+    right: 10%;
+  }
+
+  .volume-slider-box {
+    max-width: 150px;
+  }
+}
+
+/* Desktop Devices (> 1024px) */
+@media (min-width: 1025px) {
+  .app-container {
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .waveform-container {
+    min-height: 200px;
+  }
+
+  #waveform-canvas {
+    height: 200px;
+  }
+}
+
+/* ==========================================================================
+   ADDITIONS: Loading Overlay, Notifications, & Dynamic Deck States
+   ========================================================================== */
+
+/* ---- Loading Overlay ---------------------------------------------------- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-value: 9999;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.loading-content {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  color: var(--accent-primary);
+  margin-bottom: 1rem;
+}
+
+.loading-spinner .fa-compact-disc {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+/* ---- Notification Toasts ------------------------------------------------ */
+.notifications-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.notification {
+  pointer-events: auto;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  max-width: 320px;
+}
+
+.notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.notification.info {
+  border-left: 3px solid var(--accent-secondary);
+}
+
+.notification.error {
+  border-left: 3px solid var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.notification.success {
+  border-left: 3px solid var(--success);
+}
+
+/* ---- Dynamic Now Playing / Queue States --------------------------------- */
+
+/* Empty state for deck cards when nothing is loaded */
+.track-title.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Queue empty state */
+.queue-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+/* Queue track states */
+.track-item.current {
+  border-left: 3px solid var(--accent-primary);
+  background: var(--accent-primary-dim);
+}
+
+.track-item.past {
+  opacity: 0.4;
+}
+
+.now-playing-indicator {
+  color: var(--accent-primary);
+  font-size: 1rem;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Track item layout for dynamically generated items */
+.track-item .track-number {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.track-item .track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-item .track-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-item .track-details {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.bpm-badge.small {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.remove-track-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.remove-track-btn:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* Next track label in dynamic updates */
+.next-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.track-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+/* Time display enhancement */
+.time-display {
+  font-family: var(--font-mono);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}

@@ -1,0 +1,8 @@
+# iPhone 0.12 source verification — 23 October 2026
+
+- Updated source: directional artwork, album-backdrop dissolve, late-cover fade, Reduce Motion handling, fixed lyric typography, selected lyric cards with cover/title/artist header, and persistent recent-listening radio exclusions. Player controls use Apple's native glassEffect on iOS 26+ and material fallback on iOS 17–18; building this source requires Xcode 26+ (use Xcode 27 matching the user's iOS 27 phone).
+- Shared-source Java companion rebuilt successfully with :bridge:installDist. Android's recent recommendation-filter unit checks passed earlier; no new live provider/network integration run is claimed here.
+- Project source membership, version 0.12/build 12, iOS 17 deployment target, audio background entitlement metadata, plist/shared scheme and shell syntax checked by the session validator. Initial Bash syntax-check attempt hit Windows sandbox startup restrictions; elevated read-only execution passed.
+- Packaging verifies archive integrity, source inclusion, executable launcher permissions and absence of token/keystore/local-properties files. No user signing identity or token is bundled.
+- IMPORTANT: No Xcode or Apple SDK exists on this Windows host. Swift compilation/type checking, iOS rendering, signing, image sharing and physical iPhone behavior are NOT verified. Run Check-Mac-Build.command on the Mac, then use the guide's signing/install steps. No signed IPA is provided.
+- This is not Android feature parity. Generated Home/Discover mixes, metadata-library imports, custom playlist covers, online downloads, beat sync, music haptics and Vinyl/Studio/Record designs remain unported. Online audio needs the companion computer; local imports work independently.

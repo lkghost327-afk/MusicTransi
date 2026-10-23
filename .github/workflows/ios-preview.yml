@@ -1,0 +1,29 @@
+name: Build iPhone preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: python3 ios-app/generate_project.py
+      - name: Compile iPhone app without signing credentials
+        run: >-
+          xcodebuild -project ios-app/MusicTransi.xcodeproj -scheme MusicTransi
+          -configuration Release -sdk iphoneos -destination 'generic/platform=iOS'
+          -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
+      - name: Package for local signing
+        run: |
+          mkdir -p build/package/Payload
+          cp -R build/ios/Build/Products/Release-iphoneos/MusicTransi.app build/package/Payload/
+          cd build/package
+          zip -qr MusicTransi-iPhone-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicTransi-iPhone-unsigned
+          path: build/package/MusicTransi-iPhone-unsigned.ipa
+          retention-days: 7

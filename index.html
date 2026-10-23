@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MusicTransi - Professional DJ Automix web application featuring seamless beat-matched transitions, real-time waveform visualization, and smart crossfading.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>MusicTransi — Seamless Automix DJ</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome CDN for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Background Ambient Glow Effects -->
+  <div class="ambient-glow ambient-glow-left" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-glow-right" aria-hidden="true"></div>
+
+  <!-- Main Application Wrapper -->
+  <div class="app-container">
+
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="logo-wrapper">
+        <div class="logo-icon">
+          <i class="fa-solid fa-compact-disc spin-slow"></i>
+        </div>
+        <div class="logo-text">
+          <h1 class="logo-title">Music<span>Transi</span></h1>
+          <p class="logo-subtitle">Seamless Automix</p>
+        </div>
+      </div>
+
+      <!-- Engine Status & Badges -->
+      <div class="header-status">
+        <div class="engine-badge active" id="engine-status">
+          <span class="status-dot"></span>
+          <span class="status-text">ENGINE READY</span>
+        </div>
+        <div class="deck-indicators" aria-label="Deck status">
+          <span class="deck-pill deck-pill-a"><span class="pill-dot"></span> DECK A</span>
+          <span class="deck-pill deck-pill-b"><span class="pill-dot"></span> DECK B</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+
+      <!-- Track Drop Zone & File Selector -->
+      <section class="drop-zone-section" aria-label="Track Uploader">
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Drop audio files here or click to browse">
+          <!-- Hidden Native File Input -->
+          <input type="file" id="file-input" accept="audio/*" multiple class="visually-hidden">
+
+          <div class="drop-zone-content">
+            <div class="drop-zone-icon-ring">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="drop-zone-copy">
+              <h2 class="drop-zone-title">Drop audio tracks to load</h2>
+              <p class="drop-zone-subtitle">or <span class="browse-link">browse files</span> from your computer</p>
+            </div>
+            <div class="drop-zone-tags" aria-label="Supported audio formats">
+              <span class="format-tag">MP3</span>
+              <span class="format-tag">WAV</span>
+              <span class="format-tag">FLAC</span>
+              <span class="format-tag">AAC</span>
+              <span class="format-tag">OGG</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Now Playing & Decks Overview -->
+      <section class="decks-section" aria-label="DJ Decks and Visualizer">
+
+        <!-- Top Dual-Deck Metadata Cards -->
+        <div class="decks-overview-grid">
+
+          <!-- Deck A: Now Playing -->
+          <article class="deck-card deck-a-card" id="now-playing-info">
+            <div class="deck-card-header">
+              <div class="deck-tag deck-tag-a">
+                <i class="fa-solid fa-circle-play"></i>
+                <span>DECK A &bull; NOW PLAYING</span>
+              </div>
+              <div class="live-wave-indicator" aria-label="Audio Output Active">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="deck-card-body">
+              <div class="track-artwork track-artwork-a">
+                <i class="fa-solid fa-music"></i>
+              </div>
+              <div class="track-info-primary">
+                <h3 class="track-title" id="current-title" title="Current Track Title">Sunset Mirage (Original Mix)</h3>
+                <p class="track-artist" id="current-artist">Solaris Waves</p>
+                <div class="track-badges">
+                  <span class="bpm-badge" id="current-bpm">
+                    <i class="fa-solid fa-bolt"></i> 124 BPM
+                  </span>
+                  <span class="time-badge duration-badge" id="current-duration">
+                    <i class="fa-regular fa-clock"></i> 05:42
+                  </span>
+                  <span class="key-badge" id="current-key">
+                    <i class="fa-solid fa-key"></i> 8A
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="deck-card-footer">
+              <div class="time-counter">
+                <span class="time-current" id="current-time">01:45</span>
+                <span class="time-divider">/</span>
+                <span class="time-total" id="current-total">05:42</span>
+              </div>
+              <div class="deck-gain-status">
+                <span class="gain-label">GAIN</span>
+                <div class="vu-meter">
+                  <div class="vu-bar" style="width: 78%;"></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Deck B: Next Track in Sequence -->
+          <article class="deck-card deck-b-card" id="next-track-info">
+            <div class="deck-card-header">
+              <div class="deck-tag deck-tag-b">
+                <i class="fa-solid fa-forward-step"></i>
+                <span>DECK B &bull; UP NEXT</span>
+              </div>
+              <div class="deck-sync-tag">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>SYNCED</span>
+              </div>
+            </div>
+
+            <div class="deck-card-body">
+              <div class="track-artwork track-artwork-b">
+                <i class="fa-solid fa-compact-disc"></i>
+              </div>
+              <div class="track-info-primary">
+                <h3 class="track-title" id="next-title" title="Next Track Title">Neon Velocity (Club Extended)</h3>
+                <p class="track-artist" id="next-artist">Cyber Groove</p>
+                <div class="track-badges">
+                  <span class="bpm-badge" id="next-bpm">
+                    <i class="fa-solid fa-bolt"></i> 126 BPM
+                  </span>
+                  <span class="time-badge duration-badge" id="next-duration">
+                    <i class="fa-regular fa-clock"></i> 06:15
+                  </span>
+                  <span class="key-badge" id="next-key">
+                    <i class="fa-solid fa-key"></i> 9A
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="deck-card-footer">
+              <div class="transition-cue-info">
+                <span class="cue-label">MIX-IN AT</span>
+                <span class="cue-time" id="next-cue-time">04:30 of Deck A</span>
+              </div>
+              <div class="pitch-diff">
+                <span class="pitch-label">TEMPO MATCH</span>
+                <span class="pitch-value">+1.6%</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Master Waveform Visualization & Crossfade Stage -->
+        <div class="waveform-stage">
+          <div class="waveform-stage-header">
+            <div class="deck-legend deck-legend-a">
+              <span class="legend-color-dot dot-amber"></span>
+              <span class="legend-text">Deck A Waveform</span>
+            </div>
+            <div class="waveform-stage-center">
+              <span class="waveform-mode-tag">
+                <i class="fa-solid fa-wave-square"></i> DUAL WAVEFORM VISUALIZER
+              </span>
+            </div>
+            <div class="deck-legend deck-legend-b">
+              <span class="legend-color-dot dot-blue"></span>
+              <span class="legend-text">Deck B Waveform</span>
+            </div>
+          </div>
+
+          <!-- Waveform Container with Overlay Elements -->
+          <div class="waveform-container" id="waveform-wrapper">
+            <!-- Background Grid Lines for DJ Visual Accuracy -->
+            <div class="waveform-grid" aria-hidden="true">
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+              <span class="grid-line"></span>
+            </div>
+
+            <!-- Main High-Performance Canvas Element -->
+            <canvas id="waveform-canvas" width="1200" height="200" aria-label="Real-time DJ Waveform"></canvas>
+
+            <!-- Playhead & Progress Overlay -->
+            <div class="progress-bar-container">
+              <div id="progress-bar" class="progress-bar" style="width: 31%;">
+                <div class="progress-playhead" aria-hidden="true"></div>
+              </div>
+            </div>
+
+            <!-- Transition Zone Indicator Showing Crossfade Overlap -->
+            <div class="transition-zone" id="transition-zone" title="Active Automix Crossfade Overlap">
+              <div class="transition-zone-header">
+                <i class="fa-solid fa-shuffle"></i>
+                <span class="zone-text">TRANSITION OVERLAP &bull; 16 BARS</span>
+              </div>
+
+              <!-- Visual Representation of the X-Shaped Crossfade Curves -->
+              <div class="crossfade-curves" aria-hidden="true">
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="crossfade-svg">
+                  <!-- Deck A Outgoing Fade (Amber) -->
+                  <path d="M 0,4 Q 50,8 100,36" class="curve-deck-a" />
+                  <!-- Deck B Incoming Fade (Blue) -->
+                  <path d="M 0,36 Q 50,8 100,4" class="curve-deck-b" />
+                </svg>
+              </div>
+
+              <div class="transition-zone-footer">
+                <span class="fade-tag fade-out">Deck A &darr; Fade Out</span>
+                <span class="fade-tag fade-in">Deck B &uarr; Fade In</span>
+              </div>
+            </div>
+
+            <!-- Time Stamp Markers -->
+            <div class="waveform-time-markers" aria-hidden="true">
+              <span class="marker marker-start">00:00</span>
+              <span class="marker marker-25">01:30</span>
+              <span id="time-display" class="marker marker-50 time-display">0:00 / 0:00</span>
+              <span class="marker marker-75">04:30</span>
+              <span class="marker marker-end">05:42</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Transport Controls Bar -->
+      <section class="transport-bar" aria-label="DJ Transport Controls">
+        <div class="transport-inner">
+
+          <!-- Left Controls: Automix Mode & Beat Sync -->
+          <div class="transport-group transport-left">
+            <div class="automix-control">
+              <label class="toggle-switch-label" for="automix-toggle" title="Toggle Automix Mode">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="automix-toggle" checked aria-label="Automix Toggle">
+                  <span class="toggle-slider"></span>
+                </div>
+                <div class="toggle-text-group">
+                  <span class="toggle-title">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Automix
+                  </span>
+                  <span class="toggle-sub">Smart Beatmatch</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="sync-status-indicator" title="Beat Sync Active">
+              <span class="sync-led"></span>
+              <span class="sync-label">SYNC ON</span>
+            </div>
+          </div>
+
+          <!-- Center Controls: Primary Transport Buttons & Crossfade -->
+          <div class="transport-group transport-center">
+            <div class="main-buttons">
+              <!-- Cue Button -->
+              <button type="button" class="transport-btn secondary-btn" id="cue-btn" aria-label="Cue Current Track" title="Cue to Beginning">
+                <i class="fa-solid fa-backward-step"></i>
+              </button>
+
+              <!-- Main Play/Pause Button (Large, Centered) -->
+              <button type="button" class="transport-btn play-btn" id="play-btn" aria-label="Play / Pause" title="Play / Pause (Spacebar)">
+                <i class="fa-solid fa-play" id="play-icon"></i>
+              </button>
+
+              <!-- Skip/Next Button -->
+              <button type="button" class="transport-btn secondary-btn" id="skip-btn" aria-label="Skip to Next Track" title="Skip to Next Track (N)">
+                <i class="fa-solid fa-forward-step"></i>
+              </button>
+            </div>
+
+            <!-- Crossfade Duration Selector -->
+            <div class="crossfade-selector-group">
+              <label for="crossfade-select" class="selector-label">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Crossfade</span>
+              </label>
+              <div class="custom-select-container">
+                <select id="crossfade-select" class="custom-select" aria-label="Crossfade Transition Duration">
+                  <option value="4">4 Bars (Fast Mix)</option>
+                  <option value="8">8 Bars (Medium)</option>
+                  <option value="16" selected>16 Bars (Smooth Club)</option>
+                  <option value="32">32 Bars (Long Blend)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-caret" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Controls: Volume Master Slider -->
+          <div class="transport-group transport-right">
+            <div class="volume-control-group">
+              <button type="button" class="volume-mute-btn" id="mute-btn" aria-label="Mute / Unmute" title="Mute Volume">
+                <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+              </button>
+              <div class="volume-slider-box">
+                <input type="range" id="volume-slider" class="custom-range" min="0" max="100" value="80" aria-label="Master Output Volume">
+                <div class="volume-display">
+                  <span class="volume-percent" id="volume-value">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Queue Section -->
+      <section class="queue-section" aria-label="Track Playback Queue">
+        <div class="queue-header">
+          <div class="queue-title-wrap">
+            <h2 class="queue-title">
+              <i class="fa-solid fa-list-ol"></i>
+              <span>Upcoming Tracks</span>
+            </h2>
+            <span class="queue-counter-badge" id="queue-counter">3 tracks queued</span>
+          </div>
+
+          <div class="queue-actions">
+            <button type="button" class="btn-clear-queue" id="clear-queue-btn" title="Remove all tracks from queue">
+              <i class="fa-solid fa-trash-can"></i>
+              <span>Clear Queue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Queue Items Container -->
+        <ul class="queue-list" id="queue-list">
+
+          <!-- Queue Item 1 (Active in Deck B) -->
+          <li class="track-item active-queued" data-id="1">
+            <div class="track-drag-handle" title="Drag to reorder" aria-label="Drag handle">
+              <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            <span class="track-order-number">01</span>
+            <div class="track-item-info">
+              <h3 class="track-item-title">Neon Velocity (Club Extended)</h3>
+              <p class="track-item-meta">Cyber Groove &bull; Electro House</p>
+            </div>
+            <div class="track-item-badges">
+              <span class="bpm-badge"><i class="fa-solid fa-bolt"></i> 126 BPM</span>
+              <span class="time-badge duration-badge"><i class="fa-regular fa-clock"></i> 06:15</span>
+            </div>
+            <button type="button" class="remove-btn" aria-label="Remove track Neon Velocity" title="Remove track">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </li>
+
+          <!-- Queue Item 2 -->
+          <li class="track-item" data-id="2">
+            <div class="track-drag-handle" title="Drag to reorder" aria-label="Drag handle">
+              <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            <span class="track-order-number">02</span>
+            <div class="track-item-info">
+              <h3 class="track-item-title">Deep Echoes in the Dark</h3>
+              <p class="track-item-meta">Subliminal Frequency &bull; Melodic Techno</p>
+            </div>
+            <div class="track-item-badges">
+              <span class="bpm-badge"><i class="fa-solid fa-bolt"></i> 124 BPM</span>
+              <span class="time-badge duration-badge"><i class="fa-regular fa-clock"></i> 07:08</span>
+            </div>
+            <button type="button" class="remove-btn" aria-label="Remove track Deep Echoes" title="Remove track">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </li>
+
+          <!-- Queue Item 3 -->
+          <li class="track-item" data-id="3">
+            <div class="track-drag-handle" title="Drag to reorder" aria-label="Drag handle">
+              <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            <span class="track-order-number">03</span>
+            <div class="track-item-info">
+              <h3 class="track-item-title">Starlight Transit (Vocal Cut)</h3>
+              <p class="track-item-meta">Astral Voyage &bull; Progressive House</p>
+            </div>
+            <div class="track-item-badges">
+              <span class="bpm-badge"><i class="fa-solid fa-bolt"></i> 125 BPM</span>
+              <span class="time-badge duration-badge"><i class="fa-regular fa-clock"></i> 05:19</span>
+            </div>
+            <button type="button" class="remove-btn" aria-label="Remove track Starlight Transit" title="Remove track">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </li>
+
+        </ul>
+
+        <!-- Empty State (Hidden when tracks exist) -->
+        <div class="queue-empty-state" id="queue-empty-state" style="display: none;">
+          <div class="empty-icon-wrap">
+            <i class="fa-solid fa-record-vinyl"></i>
+          </div>
+          <h3 class="empty-title">Queue is empty</h3>
+          <p class="empty-description">Drag audio files into the drop zone above or click browse to add tracks to your mix session.</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <div class="footer-brand-info">
+          <span class="brand-name">MusicTransi</span>
+          <span class="brand-divider">&bull;</span>
+          <span class="brand-tagline">Pro DJ Automix Suite</span>
+        </div>
+
+        <div class="footer-center-credits">
+          <p>Powered by the <span class="highlight-text">Web Audio API</span> &bull; Real-Time Beat Detection &amp; Seamless Crossfades</p>
+        </div>
+
+        <div class="footer-keyboard-hints" aria-label="Keyboard Shortcuts">
+          <span class="hint-pill"><kbd>Space</kbd> Play / Pause</span>
+          <span class="hint-pill"><kbd>N</kbd> Skip</span>
+          <span class="hint-pill"><kbd>M</kbd> Mute</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner">
+        <i class="fa-solid fa-compact-disc fa-spin"></i>
+      </div>
+      <p id="loading-text" class="loading-text">Analyzing track...</p>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="notifications" class="notifications-container"></div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
