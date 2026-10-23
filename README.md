@@ -32,4 +32,4 @@ The iPhone source includes directional artwork, lyric sharing and recent-history
 
 Android: `android-app/`. iPhone: `ios-app/`. The JVM companion shares Android catalog-source code. The root HTML/CSS/JS files are the original browser prototype, not the installable mobile app.
 
-Read [third-party notices](android-app/THIRD_PARTY.md). Public binary distribution requires completing the license and corresponding-source bundle identified there. No affiliation with Apple, Spotify, Amazon, YouTube or other music providers is claimed.
+Read [third-party notices](android-app/THIRD_PARTY.md). The tagged source and GPL-3.0 license accompany the Android preview release. No affiliation with Apple, Spotify, Amazon, YouTube or other music providers is claimed.

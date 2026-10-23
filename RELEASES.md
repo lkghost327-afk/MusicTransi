@@ -1,4 +1,4 @@
-# v0.12 preview — draft release notes
+# v0.12 preview
 
 Publish as a **prerelease**. Android and iPhone have different readiness levels.
 
@@ -20,4 +20,4 @@ Assets: `MusicTransi-v0.12-preview.apk`, `MusicTransi-v0.12.sha256`, `MusicTrans
 
 Assets: `MusicTransi-Mac-iPhone-v0.12-kit.zip`, matching `.sha256`, `IPHONE-INSTALL-v0.12.md`.
 
-The known audio beat-sync issue remains unresolved. See each platform's verification document. Complete the third-party distribution/license bundle before publishing binary release assets.
+The known audio beat-sync issue remains unresolved. See each platform's verification document. The tagged repository source and third-party notices accompany the preview binaries.

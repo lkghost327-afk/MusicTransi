@@ -7,6 +7,6 @@
 - OkHttp 4.12.0, Square contributors: Apache License 2.0. https://github.com/square/okhttp/tree/parent-4.12.0
 - Kotlin / kotlinx.coroutines, JetBrains contributors: Apache License 2.0. https://github.com/Kotlin/kotlinx.coroutines
 
-Dependencies include transitive components with their own notices. This is a local development build; a distributable release needs a complete corresponding-source and license bundle. No provider endorsement or affiliation is claimed.
+Dependencies include transitive components with their own notices embedded in their packages. Distribute the Android preview with its matching tagged source, GPL-3.0 license and these notices. No provider endorsement or affiliation is claimed.
 
 Research only, not incorporated: BloomeeTunes (GPL-2.0 license file), Sony FxNorm-Automix (MIT), SongMix (MIT).
