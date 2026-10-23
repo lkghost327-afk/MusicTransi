@@ -1,6 +1,6 @@
 # v0.12 preview
 
-Publish as a **prerelease**. Android and iPhone have different readiness levels.
+This is a **prerelease**. Android and iPhone have different readiness levels.
 
 ## Android
 
