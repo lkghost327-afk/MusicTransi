@@ -10,8 +10,8 @@ android {
         applicationId = "com.example.musictransi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.12-preview"
+        versionCode = 15
+        versionName = "0.15-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

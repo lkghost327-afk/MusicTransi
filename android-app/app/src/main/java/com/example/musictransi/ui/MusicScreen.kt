@@ -128,7 +128,7 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
         Row(Modifier.fillMaxWidth().padding(24.dp, 18.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("MUSICTRANSI", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-                Text(if (album != null) "Album" else listOf("Home", "Search", "Up next", "Library")[tab], color = Ink, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                Text(if (album != null) "Album" else listOf("Home", "Search", "Up next", "Library", "Activity")[tab], color = Ink, fontSize = 36.sp, fontWeight = FontWeight.Bold)
             }
             TextButton(onClick = { settings = true }) { Text("Mix", color = Rose) }
         }
@@ -137,6 +137,7 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
             AlbumScreen(currentAlbum, library.albums.any { it.id == currentAlbum.id }, Modifier.weight(1f), { album = null },
                 { libraryEdit { player.library.toggleAlbum(currentAlbum) } }, ::playList, ::queueList, { songMenu = it }, { addingTracks = it })
         } else if (tab == 3) LibraryScreen(library, player.library, Modifier.weight(1f), ::playList, ::queueList, { songMenu = it }, { album = it })
+        else if (tab == 4) ListeningActivityScreen(player.activityStats, Modifier.weight(1f))
         else LazyColumn(Modifier.weight(1f).then(screenEntrance(tab)), contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 20.dp)) {
             if (tab == 0) {
                 item {
@@ -285,7 +286,7 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
             SwipeArtwork(track.id, left = { onStart(); player.next() }, right = { onStart(); player.previous() },
                 up = { expanded = true }, down = {}, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant).playerGlass(s.glassAppearance, dark).clickable { expanded = true }.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                .background(MaterialTheme.colorScheme.surfaceVariant).frostedPanel(dark).clickable { expanded = true }.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Artwork(track.artwork, Modifier.size(45.dp).clip(RoundedCornerShape(7.dp)), trackId = track.id)
                 Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                     Text(track.title, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 14.sp)
@@ -326,9 +327,9 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
                     FilterChip(selected = s.playerStyle == i, onClick = { player.setPlayerStyle(i) }, label = { Text(name) })
                 }
             }
-            Setting("Liquid glass", s.glassAppearance, player::setGlassAppearance)
-            Text("Translucent panels and luminous edges. Works with every player design.", fontSize = 12.sp)
+            Text("Matte frosted panels keep lyrics and controls clear.", fontSize = 12.sp)
             Text("Swipe artwork: left/right to change songs, up for queue, down to collapse. Swipe the mini-player up to expand.", fontSize = 12.sp, modifier = Modifier.padding(vertical = 10.dp))
+            AudioQualitySettings(s.audioQuality, player::setAudioQuality)
             Text("Transition · ${s.crossfadeSeconds} seconds")
             Slider(s.crossfadeSeconds.toFloat(), { player.setCrossfade(it.toInt()) }, valueRange = 0f..16f, steps = 15)
             Setting("Bass handoff", s.bassBlend, player::setBassBlend)
@@ -419,7 +420,7 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
         }
         val artworkSize = minOf(maxWidth - 56.dp, maxHeight * (if (maxHeight < 650.dp) .34f else .43f))
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp).playerGlass(s.glassAppearance), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp).frostedPanel(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = close, modifier = Modifier.size(48.dp).semantics { contentDescription = "Collapse player" }) {
                     Canvas(Modifier.size(22.dp)) {
                         val path = Path().apply {
@@ -474,7 +475,7 @@ fun MusicScreen(s: MixState, player: MixService, onLocal: () -> Unit, onStart: (
                 Text(if (s.loading) "Buffering…" else s.mixStatus, color = Color.White.copy(alpha = .7f), fontSize = 11.sp)
                 Text("−${time((s.durationMs - s.positionMs).coerceAtLeast(0))}", color = Color.White.copy(alpha = .55f), fontSize = 11.sp)
             }
-            Row(Modifier.fillMaxWidth().padding(vertical = 22.dp).playerGlass(s.glassAppearance).padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 22.dp).frostedPanel().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
                 Transport("Previous", Color.White, { onStart(); player.previous() }, true)
                 Transport(if (s.playing) "Pause" else "Play", Color.White, toggle, true)
                 Transport("Next", Color.White, { onStart(); player.next() }, true)

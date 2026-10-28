@@ -61,7 +61,8 @@ data class SuggestedMix(val title: String, val description: String, val tracks: 
             }
             if (finished == null) failed = true
             publish(candidates)
-            completed = basis
+            // Partial/outage results are usable, but must not suppress later retries.
+            completed = basis.takeIf { !failed && !incomplete }
         } finally { loading = false }
     }
 }

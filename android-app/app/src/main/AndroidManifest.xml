@@ -31,8 +31,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".playback.MixService" android:exported="false"
-            android:foregroundServiceType="mediaPlayback" android:stopWithTask="false" />
+        <meta-data android:name="com.google.android.gms.car.application" android:resource="@xml/automotive_app_desc" />
+        <receiver android:name=".widgets.CompactPlayerWidget" android:exported="false" android:label="MusicTransi · Compact">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_compact_info" />
+        </receiver>
+        <receiver android:name=".widgets.ArtworkPlayerWidget" android:exported="false" android:label="MusicTransi · Artwork">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_artwork_info" />
+        </receiver>
+        <service android:name=".playback.MixService" android:exported="true"
+            android:foregroundServiceType="mediaPlayback" android:stopWithTask="false">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

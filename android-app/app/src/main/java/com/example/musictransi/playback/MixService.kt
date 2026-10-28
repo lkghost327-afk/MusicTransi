@@ -28,6 +28,7 @@ import com.example.musictransi.source.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -45,12 +46,13 @@ data class MixState(
     val hapticIntensity: Float = .65f, val hapticStatus: String = "",
     val mixStatus: String = "",
     val themeMode: Int = 0,
-    val glassAppearance: Boolean = false,
+    val audioQuality: AudioQuality = AudioQuality.HIGH,
 ) { val current: Track? get() = queue.getOrNull(index) }
 
 /** Owns both decks independently of the Activity. All player state stays on the main thread. */
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class MixService : Service() {
+class MixService : android.service.media.MediaBrowserService() {
+    val activityStats by lazy { com.example.musictransi.library.ListeningActivity(applicationContext) }
     val searchHistory by lazy { com.example.musictransi.library.ListeningHistory(applicationContext, "search-selections", 30) }
     val listeningHistory by lazy { com.example.musictransi.library.ListeningHistory(applicationContext) }
     private val listeningProgress = com.example.musictransi.library.ListeningProgress()
@@ -74,6 +76,7 @@ class MixService : Service() {
     private var activeHaptic: HapticGenerator? = null
     private var standbyHaptic: HapticGenerator? = null
     private var loadJob: Job? = null
+    private var voiceSearch: Job? = null
     private var preloadJob: Job? = null
     private var preloadIndex = -1
     private var generation = 0
@@ -102,11 +105,52 @@ class MixService : Service() {
     private var notificationArtworkJob: Job? = null
     private var publishedMetadata: Triple<Track?, Long, android.graphics.Bitmap?>? = null
     private val prefs by lazy { getSharedPreferences("session", MODE_PRIVATE) }
+    // Exporting the browser must not expose notification-only commands as public intents.
+    private val controlToken by lazy {
+        prefs.getString("notificationControlToken", null) ?: java.util.UUID.randomUUID().toString().also {
+            prefs.edit().putString("notificationControlToken", it).apply()
+        }
+    }
     private val noisy = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) { pause() }
     }
 
-    override fun onBind(intent: Intent) = LocalBinder()
+    override fun onBind(intent: Intent): IBinder? =
+        if (intent.action == SERVICE_INTERFACE) super.onBind(intent) else LocalBinder()
+
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        val packages = packageManager.getPackagesForUid(clientUid).orEmpty()
+        if (clientPackageName !in packages) return null
+        val allowed = clientUid == applicationInfo.uid || clientUid == android.os.Process.SYSTEM_UID ||
+            clientPackageName in setOf("com.google.android.projection.gearhead", "com.google.android.carassistant",
+                "com.android.car.media", "com.google.android.gms")
+        return if (allowed) BrowserRoot("root", null) else null
+    }
+
+    override fun onLoadChildren(parentId: String, result: Result<MutableList<android.media.browse.MediaBrowser.MediaItem>>) {
+        result.detach()
+        scope.launch {
+            val saved = library.state.first { !it.loading }
+            fun folder(id: String, title: String) = android.media.browse.MediaBrowser.MediaItem(
+                android.media.MediaDescription.Builder().setMediaId(id).setTitle(title).build(),
+                android.media.browse.MediaBrowser.MediaItem.FLAG_BROWSABLE)
+            val folders = when (parentId) {
+                "root" -> listOf(folder("likes", "Liked songs"), folder("recent", "Recently played"),
+                    folder("playlists", "Playlists"), folder("queue", "Queue"))
+                "playlists" -> saved.playlists.take(100).map { folder("playlist:${it.id}", it.name) }
+                else -> null
+            }
+            val tracks = CarCatalogue.collection(parentId, saved, listeningHistory.tracks.value, mutable.value.queue)
+            val children = folders ?: tracks.take(100).map { track ->
+                val id = CarCatalogue.mediaId(parentId, track)
+                android.media.browse.MediaBrowser.MediaItem(android.media.MediaDescription.Builder()
+                    .setMediaId(id).setTitle(track.title).setSubtitle(track.artist)
+                    .setIconUri(track.artwork.takeIf { it.startsWith("https://") }?.let(android.net.Uri::parse)).build(),
+                    android.media.browse.MediaBrowser.MediaItem.FLAG_PLAYABLE)
+            }
+            result.sendResult(children.toMutableList())
+        }
+    }
     override fun onCreate() {
         super.onCreate()
         audio = getSystemService(AudioManager::class.java)
@@ -131,16 +175,22 @@ class MixService : Service() {
         standby = makePlayer(standbyProbe)
         session = MediaSession(this, "MusicTransi").apply {
             setCallback(object : MediaSession.Callback() {
-                override fun onPlay() = play()
+                override fun onPlay() {
+                    startService(Intent(this@MixService, MixService::class.java))
+                    play()
+                }
                 override fun onPause() = pause()
                 override fun onSkipToNext() = next()
                 override fun onSkipToPrevious() = previous()
                 override fun onSeekTo(pos: Long) = seek(pos)
                 override fun onStop() = stopPlayback()
+                override fun onPlayFromSearch(query: String?, extras: Bundle?) = searchFromCar(query)
+                override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) = playCarItem(mediaId)
                 override fun onCustomAction(action: String, extras: Bundle?) { if (action == "like") toggleNotificationLike() }
             })
             isActive = false
         }
+        sessionToken = session.sessionToken
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(CHANNEL, "Music playback", NotificationManager.IMPORTANCE_LOW))
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(noisy,
@@ -160,6 +210,9 @@ class MixService : Service() {
         scope.launch {
             var previousLikes: Set<String>? = null
             library.state.collect { saved ->
+                notifyChildrenChanged("likes")
+                notifyChildrenChanged("playlists")
+                saved.playlists.forEach { notifyChildrenChanged("playlist:${it.id}") }
                 val likes = saved.likes.map { it.id }.toSet()
                 if (likes != previousLikes) { previousLikes = likes; if (session.isActive) publish() }
             }
@@ -199,6 +252,8 @@ class MixService : Service() {
             volume = MixMath.HEADROOM
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: PlaybackException) {
+                    YouTubeSource.invalidateStream(if (this@apply === active) mutable.value.current
+                        else mutable.value.queue.getOrNull(preloadIndex))
                     if (this@apply === active) {
                         pause()
                         update { copy(loading = false, message = "Playback failed. Tap Play to resolve the stream again.") }
@@ -225,7 +280,11 @@ class MixService : Service() {
         }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action in setOf("pause", "next", "previous", "like", "stop", "play", "widget_toggle") &&
+            intent?.getStringExtra("controlToken") != controlToken) return START_NOT_STICKY
         when (intent?.action) {
+            "widget_toggle" -> if (mutable.value.playing) pause() else play()
+            android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH -> searchFromCar(intent.getStringExtra(android.app.SearchManager.QUERY))
             "pause" -> pause()
             "next" -> next()
             "previous" -> previous()
@@ -234,6 +293,60 @@ class MixService : Service() {
             "play" -> play()
         }
         return START_NOT_STICKY // Never restart sound unexpectedly after process death.
+    }
+
+    private fun playCarItem(mediaId: String?) {
+        voiceSearch?.cancel()
+        val token = generation
+        voiceSearch = scope.launch {
+            val identity = CarCatalogue.decode(mediaId)
+            val saved = library.state.first { !it.loading }
+            ensureActive()
+            if (generation != token) return@launch
+            val collection = identity?.let { CarCatalogue.collection(it.first, saved,
+                listeningHistory.tracks.value, mutable.value.queue) }.orEmpty()
+            val index = collection.indexOfFirst { it.id == identity?.second }
+            voiceSearch = null
+            if (index < 0) {
+                val message = "This song is no longer in this collection. Refresh the list and choose another song."
+                update { copy(message = message) }
+                // Report the failure without pausing or replacing an existing playback session.
+                val playback = session.controller.playbackState
+                if (playback != null) session.setPlaybackState(PlaybackState.Builder(playback).setErrorMessage(message).build())
+                return@launch
+            }
+            startService(Intent(this@MixService, MixService::class.java))
+            playCollection(collection, index)
+        }
+    }
+
+    private fun searchFromCar(query: String?) {
+        voiceSearch?.cancel()
+        val term = query.orEmpty().trim().take(200)
+        if (term.isBlank() && mutable.value.current != null) { play(); return }
+        pause()
+        startService(Intent(this, MixService::class.java))
+        promoteForeground()
+        val token = generation
+        voiceSearch = scope.launch {
+            try {
+                val songs = if (term.isBlank()) listeningHistory.tracks.value.ifEmpty {
+                    library.state.first { !it.loading }.likes
+                } else YouTubeSource.search(term)
+                ensureActive()
+                if (generation != token) return@launch
+                if (songs.isEmpty()) error("No matching songs")
+                // load() cancels pending voice requests; detach this completed request first.
+                voiceSearch = null
+                playCollection(songs.take(30))
+            } catch (e: CancellationException) { throw e }
+            catch (_: Exception) {
+                pause()
+                update { copy(message = "No matching music found. Try a song or artist name.") }
+                session.setPlaybackState(PlaybackState.Builder().setState(PlaybackState.STATE_ERROR, 0, 0f)
+                    .setErrorMessage("No matching music found. Try a song or artist name.").setActions(PlaybackState.ACTION_PLAY_FROM_SEARCH).build())
+            }
+        }
     }
 
     fun enqueue(track: Track, playNow: Boolean = false) {
@@ -351,8 +464,8 @@ class MixService : Service() {
     }
 
     fun setNormalize(enabled: Boolean) { update { copy(normalize = enabled) }; persist() }
+    fun setAudioQuality(quality: AudioQuality) { update { copy(audioQuality = quality) }; persist() }
     fun setPlayerStyle(style: Int) { update { copy(playerStyle = style.coerceIn(0, 4)) }; persist() }
-    fun setGlassAppearance(enabled: Boolean) { update { copy(glassAppearance = enabled) }; persist() }
     fun setHapticAdvance(ms: Int) { update { copy(hapticAdvanceMs = ms.coerceIn(-150, 150)) }; persist() }
     fun setThemeMode(mode: Int) { update { copy(themeMode = mode.coerceIn(0, 2)) }; persist() }
     fun setHapticIntensity(value: Float) { update { copy(hapticIntensity = value.coerceIn(.2f, 1f)) }; persist() }
@@ -390,6 +503,7 @@ class MixService : Service() {
     }
 
     private fun load(index: Int) {
+        voiceSearch?.cancel(); voiceSearch = null
         val track = mutable.value.queue.getOrNull(index) ?: return
         listeningProgress.reset()
         generation++
@@ -405,7 +519,7 @@ class MixService : Service() {
         persist()
         loadJob = scope.launch {
             try {
-                val resolved = withContext(Dispatchers.IO) { com.example.musictransi.downloads.OfflineDownloads(this@MixService).localAudio(track) } ?: YouTubeSource.resolve(track)
+                val resolved = withContext(Dispatchers.IO) { com.example.musictransi.downloads.OfflineDownloads(this@MixService).localAudio(track) } ?: YouTubeSource.resolve(track, mutable.value.audioQuality)
                 ensureActive()
                 if (token != generation) return@launch
                 refreshArtwork(track.id, resolved.artwork)
@@ -444,7 +558,9 @@ class MixService : Service() {
         val token = generation
         preloadJob = scope.launch {
             try {
-                val resolved = withContext(Dispatchers.IO) { com.example.musictransi.downloads.OfflineDownloads(this@MixService).localAudio(track) } ?: YouTubeSource.resolve(track)
+                // Let the selected song finish initial buffering before competing for bandwidth.
+                while (active.playbackState != Player.STATE_READY) { delay(100); ensureActive() }
+                val resolved = withContext(Dispatchers.IO) { com.example.musictransi.downloads.OfflineDownloads(this@MixService).localAudio(track) } ?: YouTubeSource.resolve(track, mutable.value.audioQuality)
                 ensureActive()
                 if (token != generation || target != preloadIndex) return@launch
                 refreshArtwork(track.id, resolved.artwork)
@@ -482,6 +598,7 @@ class MixService : Service() {
 
     private fun tick() {
         val s = mutable.value
+        activityStats.observe(s.current, s.playing && active.isPlaying, SystemClock.elapsedRealtime())
         if (listeningProgress.observe(s.playing && active.isPlaying, SystemClock.elapsedRealtime())) {
             s.current?.let { track -> scope.launch {
                 try { listeningHistory.record(track) }
@@ -627,6 +744,8 @@ class MixService : Service() {
     }
 
     fun pause(abandon: Boolean = true) {
+        voiceSearch?.cancel(); voiceSearch = null
+        activityStats.observe(mutable.value.current, false, SystemClock.elapsedRealtime())
         vibration.cancel()
         continueRadio = false
         resumeAfterFocus = false
@@ -741,7 +860,7 @@ class MixService : Service() {
     private fun notification(): Notification {
         val s = mutable.value
         fun action(name: String) = PendingIntent.getService(this, name.hashCode(),
-            Intent(this, MixService::class.java).setAction(name), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            Intent(this, MixService::class.java).setAction(name).putExtra("controlToken", controlToken), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(com.example.musictransi.R.drawable.ic_music)
@@ -769,15 +888,13 @@ class MixService : Service() {
             s.current?.let { track -> notificationArtworkJob = scope.launch {
                 val cover = com.example.musictransi.ui.loadCoverBitmap(applicationContext, track.artwork, track.id)
                 if (notificationArtworkKey == artworkKey && session.isActive) {
-                    notificationArtwork = cover?.let {
-                        val ratio = 256f / maxOf(it.width, it.height)
-                        if (ratio < 1f) it.scale((it.width * ratio).toInt().coerceAtLeast(1), (it.height * ratio).toInt().coerceAtLeast(1), true) else it
-                    }
+                    notificationArtwork = cover?.let { com.example.musictransi.ui.squareSystemArtwork(it) }
                     publish()
                 }
             } }
         }
         val metadata = Triple(s.current, s.durationMs, notificationArtwork)
+        com.example.musictransi.widgets.PlayerWidgets.publish(this, s.current, s.playing, notificationArtwork, currentLiked())
         if (publishedMetadata != metadata) {
         publishedMetadata = metadata
         session.setMetadata(MediaMetadata.Builder()
@@ -788,7 +905,7 @@ class MixService : Service() {
             .putBitmap(MediaMetadata.METADATA_KEY_ART, notificationArtwork).build())
         }
         session.setPlaybackState(PlaybackState.Builder().setActions(
-            PlaybackState.ACTION_PLAY or PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_PLAY_PAUSE or
+            PlaybackState.ACTION_PLAY_FROM_SEARCH or PlaybackState.ACTION_PLAY_FROM_MEDIA_ID or PlaybackState.ACTION_PLAY or PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_PLAY_PAUSE or
                 PlaybackState.ACTION_SKIP_TO_NEXT or PlaybackState.ACTION_SKIP_TO_PREVIOUS or
                 PlaybackState.ACTION_SEEK_TO or PlaybackState.ACTION_STOP)
             .addCustomAction(PlaybackState.CustomAction.Builder("like", if (currentLiked()) "Unlike" else "Like", likeIcon()).build())
@@ -810,6 +927,7 @@ class MixService : Service() {
     }
 
     fun stopPlayback() {
+        com.example.musictransi.widgets.PlayerWidgets.publish(this, mutable.value.current, false, notificationArtwork, currentLiked())
         radioJob?.cancel(); radioJob = null; radioSeed = null; continueRadio = false
         generation++; loadJob?.cancel(); cancelBlend(); active.stop(); active.clearMediaItems()
         pause()
@@ -836,10 +954,10 @@ class MixService : Service() {
         val blocked = JSONArray()
         rejected.forEach { blocked.put(JSONObject().put("id", it.id).put("title", it.title).put("artist", it.artist)) }
         prefs.edit().putString("queue", array.toString()).putInt("index", s.index)
-            .putInt("crossfade", s.crossfadeSeconds).putBoolean("autoplay", s.autoplay)
+            .putInt("crossfade", s.crossfadeSeconds).putBoolean("autoplay", s.autoplay).putString("audioQuality", s.audioQuality.name)
             .putBoolean("bassBlend", s.bassBlend).putBoolean("normalize", s.normalize)
             .putInt("hapticAdvance", s.hapticAdvanceMs).putBoolean("haptics", s.haptics).putFloat("hapticIntensity", s.hapticIntensity)
-            .putInt("playerStyle", s.playerStyle).putInt("themeMode", s.themeMode).putBoolean("glassAppearance", s.glassAppearance).putString("rejected", blocked.toString()).apply()
+            .putInt("playerStyle", s.playerStyle).putInt("themeMode", s.themeMode).remove("glassAppearance").putString("rejected", blocked.toString()).apply()
     }
     private fun restore(): MixState = runCatching {
         val array = JSONArray(prefs.getString("queue", "[]"))
@@ -849,16 +967,18 @@ class MixService : Service() {
         val oldIndex = prefs.getInt("index", -1).coerceIn(-1, queue.lastIndex)
         val clean = queue.filterIndexed { i, track -> i <= oldIndex || !track.automatic || RadioPolicy.eligible(track) }
         MixState(queue = clean, index = oldIndex,
+            audioQuality = AudioQuality.fromPreference(prefs.getString("audioQuality", null)),
             hapticAdvanceMs = prefs.getInt("hapticAdvance", 35).coerceIn(-150, 150),
             haptics = prefs.getBoolean("haptics", false), hapticIntensity = prefs.getFloat("hapticIntensity", .65f),
             crossfadeSeconds = prefs.getInt("crossfade", 8).coerceIn(0, 16),
             autoplay = prefs.getBoolean("autoplay", true), bassBlend = prefs.getBoolean("bassBlend", true),
             normalize = prefs.getBoolean("normalize", true), playerStyle = prefs.getInt("playerStyle", 0).coerceIn(0, 4),
-            glassAppearance = prefs.getBoolean("glassAppearance", false),
             themeMode = prefs.getInt("themeMode", 0).coerceIn(0, 2))
     }.getOrDefault(MixState())
 
     override fun onDestroy() {
+        com.example.musictransi.widgets.PlayerWidgets.publish(this, mutable.value.current, false, notificationArtwork, currentLiked())
+        activityStats.flush()
         scope.cancel()
         library.close()
         vibration.cancel()

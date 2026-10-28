@@ -28,42 +28,13 @@ import androidx.compose.ui.unit.dp
 import com.example.musictransi.source.Track
 import kotlin.math.*
 
-// Cached optical layers keep the glass treatment usable on Android 8–11 too.
-// This is a lightweight glass material, not a live backdrop-refraction shader.
-fun Modifier.playerGlass(enabled: Boolean, dark: Boolean = true): Modifier {
-    if (!enabled) return this
-    val shape = RoundedCornerShape(28.dp)
-    return shadow(10.dp, shape, clip = false,
-        ambientColor = Color.Black.copy(alpha = .18f), spotColor = Color.Black.copy(alpha = .24f))
-        .clip(shape).drawWithCache {
-        val fill = Brush.linearGradient(listOf(
-            Color.White.copy(alpha = if (dark) .19f else .72f),
-            Color.White.copy(alpha = if (dark) .055f else .38f),
-            Color(0xFFCBD5EF).copy(alpha = if (dark) .1f else .48f)))
-        val edge = Brush.linearGradient(
-            0f to Color.White.copy(alpha = .66f), .28f to Color.White.copy(alpha = .18f),
-            .55f to Color.White.copy(alpha = .035f), 1f to Color(0xFFDCEBFF).copy(alpha = .4f),
-            start = Offset.Zero, end = Offset(size.width, size.height))
-        val shine = Brush.radialGradient(listOf(Color.White.copy(alpha = if (dark) .2f else .3f), Color.Transparent),
-            center = Offset(size.width * .16f, -size.height * .6f), radius = size.width * .7f)
-        val reflection = Brush.radialGradient(listOf(Color(0xFFB4CAFF).copy(alpha = .12f), Color.Transparent),
-            center = Offset(size.width * .95f, size.height * 1.4f), radius = size.width * .55f)
-        val line = 1.dp.toPx()
-        val inset = line / 2
-        val radius = (28.dp.toPx() - inset).coerceAtMost(size.height / 2 - inset).coerceAtLeast(0f)
-        onDrawWithContent {
-            drawRect(fill)
-            drawRect(shine)
-            drawRect(reflection)
-            drawContent()
-            drawRoundRect(edge, Offset(inset, inset), Size((size.width-line).coerceAtLeast(0f), (size.height-line).coerceAtLeast(0f)),
-                androidx.compose.ui.geometry.CornerRadius(radius), style = Stroke(line))
-            val inner = 2.dp.toPx()
-            drawRoundRect(Color.Black.copy(alpha = if (dark) .12f else .045f), Offset(inner, inner),
-                Size((size.width - inner * 2).coerceAtLeast(0f), (size.height - inner * 2).coerceAtLeast(0f)),
-                androidx.compose.ui.geometry.CornerRadius((radius - inner).coerceAtLeast(0f)), style = Stroke(.5.dp.toPx()))
-        }
-    }
+/** Matte translucent material; no refractive rims or expensive animated shaders. */
+fun Modifier.frostedPanel(dark: Boolean = true): Modifier {
+    val shape = RoundedCornerShape(22.dp)
+    return clip(shape).background(Brush.verticalGradient(listOf(
+        if (dark) Color(0xB82C2932) else Color(0xE8F4F3F6),
+        if (dark) Color(0xD9222028) else Color(0xE8EAE8EF))))
+        .border(.5.dp, if (dark) Color.White.copy(alpha = .10f) else Color.Black.copy(alpha = .06f), shape)
 }
 
 /** Gestures live on artwork/mini-player only, leaving sliders and lists independent. */

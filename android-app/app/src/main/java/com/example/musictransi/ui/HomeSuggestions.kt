@@ -12,16 +12,23 @@ import kotlinx.coroutines.CancellationException
     var error by mutableStateOf(false); private set
     private var completedSeed: String? = null
     private var displayedSeed: String? = null
+    private var generation = 0L
+    private var activeSeed: String? = null
     suspend fun refresh(seed: Track, excluded: List<Track>, force: Boolean,
-        load: suspend (Track, List<Track>) -> List<Track> = YouTubeSource::recommendations) {
-        if (!force && completedSeed == seed.id) return
+        load: suspend (Track, List<Track>) -> List<Track> = YouTubeSource::homeRecommendations) {
+        if (!force && completedSeed == seed.id && displayedSeed == seed.id && !loading) return
+        if (!force && loading && activeSeed == seed.id) return
+        val request = ++generation
+        activeSeed = seed.id
         if (displayedSeed != seed.id) { tracks = emptyList(); displayedSeed = seed.id }
         loading = true; error = false
         try {
-            tracks = load(seed, excluded).distinctBy { it.id }.take(8)
+            val result = load(seed, excluded).distinctBy { it.id }.take(8)
+            if (request != generation) return
+            tracks = result
             completedSeed = seed.id
         } catch (e: CancellationException) { throw e }
-        catch (_: Exception) { error = true; completedSeed = seed.id }
-        finally { loading = false }
+        catch (_: Exception) { if (request == generation) { error = true; completedSeed = null } }
+        finally { if (request == generation) { loading = false; activeSeed = null } }
     }
 }

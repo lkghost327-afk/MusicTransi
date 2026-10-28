@@ -10,8 +10,11 @@ import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper
 
 /** Music's radio endpoint, not YouTube's general related-video feed. */
 object MusicRadio {
-    fun fetch(seed: Track): List<Track> {
-        val id = ArtworkPolicy.videoId(seed.id) ?: return emptyList()
+    fun fetch(seed: Track): List<Track> = prepare(seed)?.let(::execute).orEmpty()
+
+    /** Call under the extractor lock: the helper may initialise shared client data. */
+    internal fun prepare(seed: Track): okhttp3.Request? {
+        val id = ArtworkPolicy.videoId(seed.id) ?: return null
         val body = JsonWriter.string().`object`().`object`("context").`object`("client")
             .value("clientName", "WEB_REMIX").value("clientVersion", YoutubeParsingHelper.getYoutubeMusicClientVersion())
             .value("hl", "en").end().end().value("videoId", id).value("playlistId", "RDAMVM$id")
@@ -19,7 +22,12 @@ object MusicRadio {
         val request = okhttp3.Request.Builder().url("https://music.youtube.com/youtubei/v1/next?prettyPrint=false")
             .post(body.toRequestBody("application/json".toMediaType()))
         YoutubeParsingHelper.getYoutubeMusicHeaders().forEach { (key, values) -> values.forEach { request.addHeader(key, it) } }
-        return YouTubeSource.http.newCall(request.build()).execute().use {
+        return request.build()
+    }
+
+    /** No extractor access: independent HTTP work must not block selected-song resolution. */
+    internal fun execute(request: okhttp3.Request): List<Track> {
+        return YouTubeSource.http.newCall(request).execute().use {
             check(it.isSuccessful) { "Music radio returned ${it.code}" }
             parse(it.body!!.string())
         }

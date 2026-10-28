@@ -4,6 +4,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.animation.Crossfade
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +33,13 @@ import com.example.musictransi.playback.MixState
     MaterialTheme(colorScheme = darkColorScheme(primary = Color.White, onSurface = Color.White,
         onSurfaceVariant = Color(0xFFCCC2BF), surface = Color(0xFF251B1A))) {
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(tint, Color(0xFF171315))))) {
+            // Tiny filtered artwork creates a soft backdrop even on Android 8–11,
+            // without a full-resolution blur or a per-frame bitmap allocation.
+            val diffuse = remember(cover) { cover?.let { android.graphics.Bitmap.createScaledBitmap(it, 12, 12, true).asImageBitmap() } }
+            Crossfade(diffuse, animationSpec = tween(1000), label = "Frosted artwork") { bitmap ->
+                if (bitmap != null) Image(bitmap, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
+                    alpha = .22f, filterQuality = FilterQuality.High)
+            }
             CompositionLocalProvider(LocalContentColor provides Color.White) { content() }
         }
     }

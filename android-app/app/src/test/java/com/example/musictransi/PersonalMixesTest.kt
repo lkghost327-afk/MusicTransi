@@ -9,6 +9,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PersonalMixesTest {
+    @Test fun failedMixRefreshCanRetryWithoutChangingHistory() = runTest {
+        val model = PersonalMixes(); val seed = song("seed")
+        model.refresh(listOf(seed), emptyList()) { _, _ -> error("Offline") }
+        assertTrue(model.failed)
+        model.refresh(listOf(seed), emptyList()) { _, _ ->
+            (1..24).map { song("new$it", "New $it", "Related") }
+        }
+        assertFalse(model.failed); assertFalse(model.incomplete)
+        assertEquals(3, model.mixes.size)
+    }
     private fun song(id: String, title: String = id, artist: String = "Artist") = Track(id, title, artist, 180, music = true)
     @Test fun onlyAudibleElapsedTimeCountsOncePerSession() {
         val p = ListeningProgress()

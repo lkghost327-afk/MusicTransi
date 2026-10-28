@@ -9,22 +9,53 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
-data class LyricLine(val timeMs: Long, val text: String)
+data class LyricWord(val timeMs: Long, val start: Int, val end: Int)
+data class LyricLine(val timeMs: Long, val text: String, val words: List<LyricWord> = emptyList())
 data class Lyrics(val lines: List<LyricLine> = emptyList(), val plain: String = "", val instrumental: Boolean = false)
 object LrcParser {
+    private val wordStamp = Regex("<(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?>")
     private val stamp = Regex("\\[(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?]")
     fun parse(text: String): List<LyricLine> {
         val offset = Regex("(?i)\\[offset:([+-]?\\d+)]").find(text)?.groupValues?.get(1)?.toLongOrNull() ?: 0
         return text.lineSequence().take(2000).flatMap { line ->
-            val words = line.replace(stamp, "").trim()
+            val raw = line.replace(stamp, "").trim()
+            val marks = wordStamp.findAll(raw).toList()
+            val clean = StringBuilder()
+            val timed = mutableListOf<LyricWord>()
+            if (marks.isNotEmpty()) {
+                clean.append(raw.substring(0, marks.first().range.first))
+                marks.forEachIndexed { index, mark ->
+                    val segment = raw.substring(mark.range.last + 1, marks.getOrNull(index + 1)?.range?.first ?: raw.length)
+                    val start = clean.length
+                    clean.append(segment)
+                    val seconds = mark.groupValues[2].toLong()
+                    if (segment.isNotBlank() && seconds < 60) timed += LyricWord(
+                        (mark.groupValues[1].toLong() * 60000 + seconds * 1000 +
+                            (mark.groupValues[3].padEnd(3, '0').take(3).toLongOrNull() ?: 0) + offset).coerceAtLeast(0), start, clean.length)
+                }
+            } else clean.append(raw)
+            val words = clean.toString()
             stamp.findAll(line).mapNotNull { match ->
                 val seconds = match.groupValues[2].toLong()
                 if (seconds >= 60) null else {
                     val fraction = match.groupValues[3].padEnd(3, '0').take(3).toLongOrNull() ?: 0
-                    LyricLine((match.groupValues[1].toLong() * 60000 + seconds * 1000 + fraction + offset).coerceAtLeast(0), words)
+                    LyricLine((match.groupValues[1].toLong() * 60000 + seconds * 1000 + fraction + offset).coerceAtLeast(0), words,
+                        timed.takeIf { list -> list.zipWithNext().all { it.first.timeMs <= it.second.timeMs } }.orEmpty())
                 }
             }
         }.sortedBy { it.timeMs }.distinct().take(2000).toList()
+    }
+}
+
+object WordFollow {
+    fun highlightedEnd(line: LyricLine, position: Long, endMs: Long, estimate: Boolean): Int {
+        if (position < line.timeMs) return 0
+        if (line.words.isNotEmpty()) return line.words.lastOrNull { it.timeMs <= position }?.end ?: 0
+        if (!estimate || endMs <= line.timeMs) return 0
+        val words = Regex("\\S+").findAll(line.text).toList()
+        if (words.isEmpty()) return 0
+        val fraction = ((position - line.timeMs).toDouble() / (endMs - line.timeMs)).coerceIn(0.0, .999999)
+        return words[(fraction * words.size).toInt()].range.last + 1
     }
 }
 object LyricsClient {

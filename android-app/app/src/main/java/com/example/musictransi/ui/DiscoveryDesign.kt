@@ -74,7 +74,7 @@ import com.example.musictransi.source.Track
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = .12f))
             Row(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                listOf("Home", "Search", "Queue", "Library").forEachIndexed { i, label ->
+                listOf("Home", "Search", "Queue", "Library", "Activity").forEachIndexed { i, label ->
                     val color by animateColorAsState(if (i == selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, tween(180), label = "Navigation color")
                     Column(Modifier.weight(1f).selectable(selected == i, onClick = { select(i) }, role = Role.Tab)
                         .padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -82,6 +82,7 @@ import com.example.musictransi.source.Track
                             val w = size.width; val h = size.height
                             val stroke = 2.dp.toPx()
                             when (i) {
+                                4 -> for (bar in 0..2) { val x = w * (.2f + bar * .3f); drawLine(color, Offset(x, h), Offset(x, h * (.5f - bar * .2f)), stroke * 2, StrokeCap.Round) }
                                 0 -> drawPath(Path().apply { moveTo(0f, h * .45f); lineTo(w * .5f, 0f); lineTo(w, h * .45f); lineTo(w * .85f, h * .45f); lineTo(w * .85f, h); lineTo(w * .58f, h); lineTo(w * .58f, h * .65f); lineTo(w * .4f, h * .65f); lineTo(w * .4f, h); lineTo(w * .15f, h); lineTo(w * .15f, h * .45f); close() }, color)
                                 1 -> { drawCircle(color, w * .32f, Offset(w * .38f, h * .38f), style = Stroke(stroke)); drawLine(color, Offset(w * .62f, h * .62f), Offset(w * .95f, h * .95f), stroke, StrokeCap.Round) }
                                 2 -> for (r in 0..2) { val y = h * (.2f + r * .3f); drawCircle(color, stroke, Offset(stroke, y)); drawLine(color, Offset(w * .28f, y), Offset(w, y), stroke, StrokeCap.Round) }
