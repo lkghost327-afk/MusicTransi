@@ -14,17 +14,19 @@ An artwork-led music player built around smooth listening: automatic song discov
 <p align="center">
   <img src="docs/screenshots/home.png" width="23%" alt="MusicTransi personalised Home screen">
   <img src="docs/screenshots/search.png" width="23%" alt="MusicTransi Search screen">
-  <img src="docs/screenshots/player-glass.png" width="23%" alt="MusicTransi Liquid Glass player">
+  <img src="docs/screenshots/player-glass.png" width="23%" alt="MusicTransi player design">
   <img src="docs/screenshots/lyric-card.png" width="23%" alt="MusicTransi lyric sharing card">
 </p>
 
-The interface combines a dark artwork-first home screen, fast search, an ambient full-screen player and shareable lyric cards. Album colours fade into the background, covers move with next/previous navigation, and the optional glass controls stay readable over changing artwork.
+The interface combines an artwork-first home screen, fast search, a full-screen player and shareable lyric cards. Album colours fade into the background and covers move with next/previous navigation.
 
 ## Download
 
 | Download | What you get | Status |
 |---|---|---|
-| [Android v0.12 APK](https://github.com/lkghost327-afk/MusicTransi/releases/download/v0.12/MusicTransi-v0.12-preview.apk) | Installable Android 8+ preview | Debug signed; tested on Android 11 emulator |
+| [Android v0.15 APK](https://github.com/lkghost327-afk/MusicTransi/raw/refs/heads/main/dist/MusicTransi-v0.15-preview.apk) | Installable Android 8+ preview | Debug signed; install over the previous preview |
+| [v0.15 install guide](dist/INSTALL-v0.15.md) | Features, installation and limitations | Current preview |
+| [Android v0.12 release](https://github.com/lkghost327-afk/MusicTransi/releases/tag/v0.12) | Earlier Android release and iPhone kit | Historical release |
 | [Older Android builds](https://github.com/lkghost327-afk/MusicTransi/releases/tag/android-archive) | APK archive from v0.2 through v0.11 | Kept for testing and comparison |
 | [iPhone v0.12 Mac kit](https://github.com/lkghost327-afk/MusicTransi/releases/download/v0.12/MusicTransi-Mac-iPhone-v0.12-kit.zip) | SwiftUI project, Mac companion and guide | Requires Xcode and personal signing; no signed IPA |
 
@@ -38,13 +40,16 @@ Install Android updates over the existing preview to retain local app data. Chec
 - **Lyrics and haptics:** synced lyrics with seeking controls, selectable lyric sharing cards, and optional music-following vibration with timing adjustment.
 - **A real library:** liked songs, albums, editable playlists, custom covers, queue controls, search history and CSV/JSON library imports.
 - **Offline tools:** download playlists, liked songs and albums with progress, retries, removal and Wi-Fi controls.
-- **System playback:** artwork and previous/play/pause/next/like controls in Android notifications and on the lock screen.
+- **System playback:** square-cropped artwork and previous/play/pause/next/like controls in Android notifications and on the lock screen. Android controls the outer notification-card shape.
+- **Android home-screen widgets:** compact and artwork player widgets with previous, play/pause, next and like controls.
+- **Audio quality choices:** Low, Medium, High and Very high select among available streaming variants. The source does not provide verified lossless or Dolby Atmos mixes; device sound settings are available for phone-provided effects.
+- **Monthly listening activity:** local listening summaries, song covers, circular artist images where an exact catalogue match is found, artist listening bars and song filtering.
 
 ## Platform notes
 
 ### Android
 
-Android is the primary implementation. See the [Android guide](android-app/README.md), [changelog](android-app/CHANGELOG.md) and [verification results](android-app/VERIFICATION.md). Release files contain no subscription audio, provider credentials or user data.
+Android is the primary implementation. The current v0.15 preview adds configurable streaming quality, artist portraits in listening activity, home-screen player widgets, faster stream reuse and square system artwork. Android Auto's existing browser playback is retained. See the [v0.15 install guide](dist/INSTALL-v0.15.md), [execution notes](docs/implementation-v0.15.md), [Android guide](android-app/README.md), [changelog](android-app/CHANGELOG.md) and [verification results](dist/VERIFICATION-v0.15.md). Quality depends on source availability; lossless and genuine Atmos streaming are not provided by the current source.
 
 ### iPhone
 
